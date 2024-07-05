@@ -17,7 +17,7 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    author = models.IntegerField()
     title = models.CharField(max_length=120)
     description = models.TextField()
     image = models.ImageField(upload_to='posts/')
@@ -37,12 +37,10 @@ class Post(models.Model):
 
 
 class Like(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE
-    )
+    author = models.IntegerField()
     post = models.ForeignKey(
         Post, on_delete=models.CASCADE
     )
 
     def __str__(self):
-        return self.user
+        return self.author
