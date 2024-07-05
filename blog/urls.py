@@ -16,6 +16,9 @@ posts_detail = PostViewSet.as_view({
 urlpatterns = [
     path('posts/', posts_list, name='post-list-create'),
     path('posts/<int:pk>/', posts_detail, name='post-detail'),
+    # path('post_By_user')
+    # path('like_to_post')
+    # path('')
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger')
 ]
