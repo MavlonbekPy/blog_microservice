@@ -40,7 +40,3 @@ class PostViewSet(ViewSet):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-class PostRetrieveUpdateDestroyView(ViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
