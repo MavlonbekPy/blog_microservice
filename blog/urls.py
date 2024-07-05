@@ -16,6 +16,7 @@ posts_detail = PostViewSet.as_view({
 urlpatterns = [
     path('posts/', posts_list, name='post-list-create'),
     path('posts/<int:pk>/', posts_detail, name='post-detail'),
+    path('post/delete/', PostViewSet.as_view({"delete": "post_delete"})),
     # path('post_By_user')
     # path('like_to_post')
     path('like-unlike/', LikePostViewSet.as_view({"post": "like_unlike_post"})),
