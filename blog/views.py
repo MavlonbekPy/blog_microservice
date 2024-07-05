@@ -1,10 +1,13 @@
+import requests
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .models import Post
-from .serializers import PostSerializer
 from django.shortcuts import get_object_or_404
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from .models import Post, Like
+from .serializers import PostSerializer
 
 
 class PostViewSet(ViewSet):
@@ -40,3 +43,46 @@ class PostViewSet(ViewSet):
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+class LikePostViewSet(ViewSet):
+    @swagger_auto_schema(
+        operation_description="Like or unlike",
+        operation_summary="Like boss yo unlike boss",
+        responses={200: "Liked or unliked"},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+            },
+            required=['post_id']
+        ),
+        tags=['posts']
+
+    )
+    def like_unlike_post(self, request, *args, **kwargs):
+        user = self.check_authentication(request.user)
+        if not user:
+            return Response({"error": "user is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        post = Post.objects.filter(user=user['id']).first()
+        if not post:
+            return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        like_obj = Like.objects.filter(post=post, user=user['id']).first()
+        if like_obj:
+            like_obj.delete()
+            post.like_count -= 1
+            post.save(update_fields=['like_count'])
+            return Response({"detail": "Unliked"}, status.HTTP_200_OK)
+
+        like_obj = Like.objects.create(post=post, user=user['id'])
+        like_obj.save()
+        post.like_count += 1
+        post.save(update_fields=['like_count'])
+        return Response({"detail": "Liked"}, status.HTTP_200_OK)
+
+    def check_authentication(self, user):
+        response = requests.get('', data=user)
+        if response.status_code == 200:
+            return response.json()
+        return False
