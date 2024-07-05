@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'modeltranslation',
+    'drf_yasg',
     # internal apps
     'blog',
 ]
