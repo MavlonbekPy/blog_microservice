@@ -1,0 +1,217 @@
+openapi: 3.0.3
+info:
+  title: Blog Post Microservice
+  version: 0.0.0
+paths:
+  /api/posts/:
+    get:
+      operationId: root_list
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+          description: ''
+    post:
+      operationId: root_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Post'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Post'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+  /api/posts/{id}/:
+    get:
+      operationId: root_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    put:
+      operationId: root_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Post'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Post'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    patch:
+      operationId: root_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPost'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+    delete:
+      operationId: root_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    PatchedPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        category:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: integer
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        category:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: integer
+      required:
+      - category
+      - created_at
+      - description
+      - id
+      - image
+      - tags
+      - title
+      - updated_at
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
