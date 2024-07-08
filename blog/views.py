@@ -48,7 +48,7 @@ class PostViewSet(ViewSet):
             openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
         ],
         responses={200: PostSerializer()},
-        tags=['movie']
+        tags=['get-posts']
     )
     def get_posts(self, request, *args, **kwargs):
         page = request.GET.get('page', 1)
