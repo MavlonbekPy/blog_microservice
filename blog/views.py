@@ -168,7 +168,7 @@ class LikePostViewSet(ViewSet):
         return Response({"detail": "Liked"}, status.HTTP_200_OK)
 
     def check_authentication(self, access_token):
-        response = requests.get('', data=access_token)
+        response = requests.get('http://134.122.76.27:8118/api/v1/auth_me/', headers={"Authorization": access_token})
         if response.status_code == 200:
             return response.json()
         return False

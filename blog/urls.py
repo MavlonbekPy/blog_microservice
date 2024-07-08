@@ -10,7 +10,6 @@ posts_list = PostViewSet.as_view({
 posts_detail = PostViewSet.as_view({
     'get': 'retrieve',
     'put': 'update',
-    'delete': 'destroy'
 })
 
 urlpatterns = [
