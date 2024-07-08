@@ -15,7 +15,7 @@ class Post(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to='posts/')
 
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True)
 
     like_count = models.IntegerField(default=0)
     comment_count = models.IntegerField(default=0)

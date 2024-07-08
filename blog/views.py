@@ -42,7 +42,7 @@ class PostViewSet(ViewSet):
         operation_description="Get all posts",
         operation_summary="get posts",
         manual_parameters=[
-            openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY ),
+            openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
             openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
             openapi.Parameter('title', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
             openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
@@ -72,6 +72,17 @@ class PostViewSet(ViewSet):
         post_paginator = paginator.page(page)
         return Response(data=post_paginator, status=status.HTTP_200_OK)
 
+    def create_post(self, request, *args, **kwargs):
+        user = self.check_authentication(request.headers.get('Authorization'))
+        if not user:
+            return Response({"error": "user is not authenticated"}, status.HTTP_401_UNAUTHORIZED)
+
+        serializer = PostSerializer(data=request.data, context={"user_id": user['id']})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def check_authentication(self, access_token):
         response = requests.get('', data=access_token)
         if response.status_code == 200:
@@ -82,13 +93,6 @@ class PostViewSet(ViewSet):
         queryset = Post.objects.all()
         serializer = PostSerializer(queryset, many=True)
         return Response(serializer.data)
-
-    def create(self, request):
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)

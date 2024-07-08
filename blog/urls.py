@@ -17,6 +17,7 @@ urlpatterns = [
     path('posts/', PostViewSet.as_view({"get": "get_posts"})),
     path('posts/<int:pk>/', posts_detail, name='post-detail'),
     path('post/delete/', PostViewSet.as_view({"delete": "post_delete"})),
+    path('post/create/', PostViewSet.as_view({"put": "create_post"})),
     # path('post_By_user')
     # path('like_to_post')
     path('like-unlike/', LikePostViewSet.as_view({"post": "like_unlike_post"})),
