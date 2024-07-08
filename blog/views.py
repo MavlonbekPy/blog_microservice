@@ -3,9 +3,10 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from django.core.paginator import Paginator
+from rest_framework.pagination import PageNumberPagination
 from .models import Post, Like
 from .serializers import PostSerializer
 
@@ -68,9 +69,11 @@ class PostViewSet(ViewSet):
         if category:
             posts = posts.filter(category=category)
 
-        paginator = Paginator(posts, size)
-        post_paginator = paginator.page(page)
-        return Response(data=post_paginator, status=status.HTTP_200_OK)
+        paginator = PageNumberPagination()
+        paginator.page_size = size
+        result_page = paginator.paginate_queryset(posts, request)
+        serializer = PostSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(
         operation_description="Create your post",
@@ -168,7 +171,20 @@ class LikePostViewSet(ViewSet):
         return Response({"detail": "Liked"}, status.HTTP_200_OK)
 
     def check_authentication(self, access_token):
-        response = requests.get('http://134.122.76.27:8118/api/v1/auth_me/', headers={"Authorization": access_token})
+        data = self.get_one_time_token()
+        if not data:
+            return Response({"error": "Could not connect to service"}, status.HTTP_400_BAD_REQUEST)
+        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data=data,
+                                headers={"Authorization": access_token})
+        if response.status_code == 200:
+            return response.json()
+        return False
+
+    def get_one_time_token(self):
+        response = requests.get(url='http://134.122.76.27:8114/api/v1/login/',
+                                data={{"secret_key": settings.SECRET_SERVICE_KEY,
+                                       "service_id": settings.SECRET_SERVICE_ID,
+                                       "service_name": settings.SECRET_SERVICE_NAME}})
         if response.status_code == 200:
             return response.json()
         return False
