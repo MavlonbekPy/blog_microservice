@@ -174,7 +174,7 @@ class LikePostViewSet(ViewSet):
         data = self.get_one_time_token()
         if not data:
             return Response({"error": "Could not connect to service"}, status.HTTP_400_BAD_REQUEST)
-        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data=data,
+        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data={"token": data['token']},
                                 headers={"Authorization": access_token})
         if response.status_code == 200:
             return response.json()
