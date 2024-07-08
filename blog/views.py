@@ -72,6 +72,23 @@ class PostViewSet(ViewSet):
         post_paginator = paginator.page(page)
         return Response(data=post_paginator, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Create your post",
+        operation_summary="Create post",
+        responses={200: PostSerializer()},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'title': openapi.Schema(type=openapi.TYPE_STRING),
+                'description': openapi.Schema(type=openapi.TYPE_STRING),
+                'category': openapi.Schema(type=openapi.TYPE_INTEGER),
+
+            },
+            required=['title', 'description', ]
+        ),
+        tags=['posts']
+
+    )
     def create_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
         if not user:
