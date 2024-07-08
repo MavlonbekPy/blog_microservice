@@ -1,11 +1,11 @@
 import requests
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django.core.paginator import Paginator
 from .models import Post, Like
 from .serializers import PostSerializer
 
@@ -38,8 +38,42 @@ class PostViewSet(ViewSet):
             return Response({"detail": "u cant delete this post"}, status.HTTP_400_BAD_REQUEST)
         return Response({"detail": "Post not found"}, status.HTTP_404_NOT_FOUND)
 
-    def check_authentication(self, acess_token):
-        response = requests.get('', data=acess_token)
+    @swagger_auto_schema(
+        operation_description="Get all posts",
+        operation_summary="get posts",
+        manual_parameters=[
+            openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY ),
+            openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
+            openapi.Parameter('title', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
+            openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
+        ],
+        responses={200: PostSerializer()},
+        tags=['movie']
+    )
+    def get_posts(self, request, *args, **kwargs):
+        page = request.GET.get('page', 1)
+        size = request.GET.get('size', 5)
+
+        posts = Post.objects.all()
+        if not (isinstance(page, int) and page > 0):
+            page = 1
+        if not (isinstance(size, int) and size > 0):
+            size = 5
+
+        title = request.GET.get('title', None)
+        if title:
+            posts = posts.filter(title__contains=title)
+
+        category = request.GET.get('category', None)
+        if category:
+            posts = posts.filter(category=category)
+
+        paginator = Paginator(posts, size)
+        post_paginator = paginator.page(page)
+        return Response(data=post_paginator, status=status.HTTP_200_OK)
+
+    def check_authentication(self, access_token):
+        response = requests.get('', data=access_token)
         if response.status_code == 200:
             return response.json()
         return False
