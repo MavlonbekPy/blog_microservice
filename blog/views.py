@@ -174,7 +174,7 @@ class LikePostViewSet(ViewSet):
         data = self.get_one_time_token()
         if not data:
             return Response({"error": "Could not connect to service"}, status.HTTP_400_BAD_REQUEST)
-        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data={"token": data['token']},
+        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data=data,
                                 headers={"Authorization": access_token})
         if response.status_code == 200:
             return response.json()
@@ -182,9 +182,9 @@ class LikePostViewSet(ViewSet):
 
     def get_one_time_token(self):
         response = requests.get(url='http://134.122.76.27:8114/api/v1/login/',
-                                data={{"secret_key": settings.SECRET_SERVICE_KEY,
+                                data={"secret_key": settings.SECRET_SERVICE_KEY,
                                        "service_id": settings.SECRET_SERVICE_ID,
-                                       "service_name": settings.SECRET_SERVICE_NAME}})
+                                       "service_name": settings.SECRET_SERVICE_NAME})
         if response.status_code == 200:
             return response.json()
         return False
