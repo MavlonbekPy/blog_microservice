@@ -141,18 +141,18 @@ class PostViewSet(ViewSet):
         user = self.check_authentication(request.headers.get('Authorization'))
         if not user:
             return Response({"error": "user is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-        post = Post.objects.filter(user=user.data.get('id')).first()
+        post = Post.objects.filter(author=user.data.get('id')).first()
         if not post:
             return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        like_obj = Like.objects.filter(post=post, user=user.data.get('id')).first()
+        like_obj = Like.objects.filter(post=post, author=user.data.get('id')).first()
         if like_obj:
             like_obj.delete()
             post.like_count -= 1
             post.save(update_fields=['like_count'])
             return Response({"detail": "Unliked"}, status.HTTP_200_OK)
 
-        like_obj = Like.objects.create(post=post, user=user.data.get('id'))
+        like_obj = Like.objects.create(post=post, author=user.data.get('id'))
         like_obj.save()
         post.like_count += 1
         post.save(update_fields=['like_count'])
