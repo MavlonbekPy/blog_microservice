@@ -115,7 +115,11 @@ class PostViewSet(ViewSet):
             return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
 
         serializer = PostSerializer(obj)
-        return Response(serializer.data, status.HTTP_200_OK)
+        comments = self.get_post_comment(pk)
+        if comments.status_code != 200:
+            return Response(comments.json(), comments.status_code)
+
+        return Response({"post": serializer.data, "comments": comments.json()}, status.HTTP_200_OK)
 
     def update(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
@@ -165,8 +169,17 @@ class PostViewSet(ViewSet):
         data = self.get_one_time_token()
         if data.status_code != 200:
             return data
-        response = requests.post('http://134.122.76.27:8118/api/v1/me/', data=data,
+        uuid = data.json().get('token')
+        response = requests.post('http://134.122.76.27:8118/api/v1/auth/me/', data={"uuid": uuid},
                                  headers={"Authorization": access_token})
+        return response
+
+    def get_post_comment(self, post_id):
+        data = self.get_one_time_token()
+        if data.status_code != 200:
+            return data
+        data.json()['post_id'] = post_id
+        response = requests.get('', data=data.json())
         return response
 
     def get_one_time_token(self):
