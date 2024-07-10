@@ -12,6 +12,7 @@ from .models import Post, Like
 from .serializers import PostSerializer
 import random
 
+
 class PostViewSet(ViewSet):
     @swagger_auto_schema(
         operation_description="Delete your post",
@@ -189,8 +190,6 @@ class PostViewSet(ViewSet):
                                        "service_id": settings.SECRET_SERVICE_ID,
                                        "service_name": settings.SECRET_SERVICE_NAME})
         return response
-
-
 
 
 @api_view(["GET"])
