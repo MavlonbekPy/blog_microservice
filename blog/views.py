@@ -77,7 +77,7 @@ class PostViewSet(ViewSet):
     @swagger_auto_schema(
         operation_description="Create your post",
         operation_summary="Create post",
-        responses={200: PostSerializer()},
+        responses={201: PostSerializer()},
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={

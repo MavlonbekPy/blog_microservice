@@ -12,8 +12,8 @@ class Category(models.Model):
 class Post(models.Model):
     author = models.IntegerField()
     title = models.CharField(max_length=120)
-    description = models.TextField()
-    image = models.ImageField(upload_to='posts/')
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True)
 
