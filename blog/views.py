@@ -147,7 +147,7 @@ class PostViewSet(ViewSet):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
             return Response(user.json(), status=user.status_code)
-
+        print(user.json())
         post = Post.objects.filter(author=user.json().get('id')).first()
         if not post:
             return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -188,3 +188,5 @@ class PostViewSet(ViewSet):
                                        "service_id": settings.SECRET_SERVICE_ID,
                                        "service_name": settings.SECRET_SERVICE_NAME})
         return response
+
+
