@@ -23,17 +23,19 @@ class PostViewSet(ViewSet):
             },
             required=['post_id']
         ),
-        tags=['posts']
+        tags=['posts'],
+        security=[{'Bearer': []}]
 
     )
     def post_delete(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
-        if not user:
-            return Response({"error": "user is not authenticated"}, status.HTTP_401_UNAUTHORIZED)
+        if user.status_code != 200:
+            return Response(user.json(), user.status_code)
+
         post_id = request.data.get('post_id')
         post = Post.objects.filter(id=post_id).first()
         if post:
-            if post.author == user.data.get('id'):
+            if post.author == user.json().get('id'):
                 post.delete()
                 return Response({'detail': "post deleted"}, status.HTTP_200_OK)
             return Response({"detail": "u cant delete this post"}, status.HTTP_400_BAD_REQUEST)
@@ -91,10 +93,10 @@ class PostViewSet(ViewSet):
     )
     def create_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
-        if not user:
-            return Response({"error": "user is not authenticated"}, status.HTTP_401_UNAUTHORIZED)
+        if user.status_code != 200:
+            return Response(user.json(), user.status_code)
 
-        serializer = PostSerializer(data=request.data, context={"user_id": user.data.get('id')})
+        serializer = PostSerializer(data=request.data, context={"user_id": user.json().get('id')})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -105,10 +107,15 @@ class PostViewSet(ViewSet):
         serializer = PostSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        serializer = PostSerializer(post)
-        return Response(serializer.data)
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        obj = Post.objects.filter(id=pk).first()
+
+        if not obj:
+            return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
+
+        serializer = PostSerializer(obj)
+        return Response(serializer.data, status.HTTP_200_OK)
 
     def update(self, request, pk=None):
         post = get_object_or_404(Post, pk=pk)
@@ -117,11 +124,6 @@ class PostViewSet(ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, pk=None):
-        post = get_object_or_404(Post, id=pk)
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
         operation_description="Like or unlike",
@@ -139,20 +141,21 @@ class PostViewSet(ViewSet):
     )
     def like_unlike_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
-        if not user:
-            return Response({"error": "user is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-        post = Post.objects.filter(author=user.data.get('id')).first()
+        if user.status_code != 200:
+            return Response(user.json(), status=user.status_code)
+
+        post = Post.objects.filter(author=user.json().get('id')).first()
         if not post:
             return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        like_obj = Like.objects.filter(post=post, author=user.data.get('id')).first()
+        like_obj = Like.objects.filter(post=post, author=user.json().get('id')).first()
         if like_obj:
             like_obj.delete()
             post.like_count -= 1
             post.save(update_fields=['like_count'])
             return Response({"detail": "Unliked"}, status.HTTP_200_OK)
 
-        like_obj = Like.objects.create(post=post, author=user.data.get('id'))
+        like_obj = Like.objects.create(post=post, author=user.json().get('id'))
         like_obj.save()
         post.like_count += 1
         post.save(update_fields=['like_count'])
@@ -160,19 +163,15 @@ class PostViewSet(ViewSet):
 
     def check_authentication(self, access_token):
         data = self.get_one_time_token()
-        if not data:
-            return Response({"error": "Could not connect to service"}, status.HTTP_400_BAD_REQUEST)
-        response = requests.get('http://134.122.76.27:8118/api/v1/auth/me/', data=data,
-                                headers={"Authorization": access_token})
-        if response.status_code == 200:
-            return response.json()
-        return False
+        if data.status_code != 200:
+            return data
+        response = requests.post('http://134.122.76.27:8118/api/v1/me/', data=data,
+                                 headers={"Authorization": access_token})
+        return response
 
     def get_one_time_token(self):
-        response = requests.get(url='http://134.122.76.27:8114/api/v1/login/',
-                                data={"secret_key": settings.SECRET_SERVICE_KEY,
-                                      "service_id": settings.SECRET_SERVICE_ID,
-                                      "service_name": settings.SECRET_SERVICE_NAME})
-        if response.status_code == 200:
-            return response.json()
-        return False
+        response = requests.post(url='http://134.122.76.27:8114/api/v1/login/',
+                                 data={"secret_key": settings.SECRET_SERVICE_KEY,
+                                       "service_id": settings.SECRET_SERVICE_ID,
+                                       "service_name": settings.SECRET_SERVICE_NAME})
+        return response

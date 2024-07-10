@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-18x9lt)u%y780ggi&kevntn9@&eip-c6q$jiybvn9y0#8l2*kf'
 SECRET_SERVICE_KEY = '63f8c27f-fece-40b8-96ab-011659b1be50'
-SECRET_SERVICE_ID = 1
+SECRET_SERVICE_ID = 2
 SECRET_SERVICE_NAME = 'Post Microservice'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -142,6 +142,15 @@ REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
                   'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
                   'PAGE_SIZE': 10
                   }
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
 SPECTACULAR_SETTINGS = {
     'TITLE': "Blog Post Microservice",
 
