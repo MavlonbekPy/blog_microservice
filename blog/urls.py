@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework import views
-from .views import PostViewSet
+from .views import PostViewSet, create_post_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -9,4 +9,5 @@ urlpatterns = [
     path('post/create/', PostViewSet.as_view({"post": "create_post"})),
     path('post/<int:pk>/', PostViewSet.as_view({"get": "retrieve"})),
     path('like-unlike/', PostViewSet.as_view({"post": "like_unlike_post"})),
+    path('post/', create_post_view,)
 ]

@@ -4,6 +4,7 @@ from django.views.static import serve
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,6 +22,8 @@ urlpatterns = [
     path('api/v1/', include('blog.urls')),
 
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
 
     re_path(r'media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     re_path(r'static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT})

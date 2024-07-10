@@ -1,4 +1,5 @@
 import requests
+from rest_framework.decorators import api_view
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,7 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.pagination import PageNumberPagination
 from .models import Post, Like
 from .serializers import PostSerializer
-
+import random
 
 class PostViewSet(ViewSet):
     @swagger_auto_schema(
@@ -125,7 +126,7 @@ class PostViewSet(ViewSet):
         post = get_object_or_404(Post, pk=pk)
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -190,3 +191,11 @@ class PostViewSet(ViewSet):
         return response
 
 
+
+
+@api_view(["GET"])
+def create_post_view(request):
+    for i in range(1000):
+        post = Post(title=f"Post {i}", description=f"Post {i}", author=random.randint(1, 20), category_id=1)
+        post.save()
+    return Response({"message": "Post"})
