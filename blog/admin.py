@@ -10,6 +10,10 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
 
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'author', 'post')
+
+
 admin.site.register(Post, PostAdmin)
 admin.site.register(Category, CategoryAdmin)
-admin.site.register(Like)
+admin.site.register(Like, LikeAdmin)
