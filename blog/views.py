@@ -115,7 +115,7 @@ class PostViewSet(ViewSet):
         operation_summary="Single post",
         responses={200: PostSerializer()},
         tags=['posts'],
-    )  # comment # tag
+    )
     def single_post(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
         obj = Post.objects.filter(id=pk).first()
@@ -275,8 +275,8 @@ class PostViewSet(ViewSet):
         data = self.get_one_time_token()
         if data.status_code != 200:
             return data
-        data.json()['post_id'] = post_id
-        response = requests.get('http://134.122.76.27:8117/api/v1/post/', data=data.json())
+        response = requests.get('http://134.122.76.27:8117/api/v1/post/', data={"token": data.json()['token'],
+                                                                                "post_id": post_id})
         return response
 
     def get_one_time_token(self):
