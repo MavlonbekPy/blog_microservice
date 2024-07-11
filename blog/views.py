@@ -124,11 +124,11 @@ class PostViewSet(ViewSet):
             return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
 
         serializer = PostSerializer(obj)
-        # comments = self.get_post_comment(pk)
-        # if comments.status_code != 200:
-        #     return Response(comments.json(), comments.status_code)
+        comments = self.get_post_comment(pk)
+        if comments.status_code != 200:
+            return Response(comments.json(), comments.status_code)
 
-        return Response({"post": serializer.data}, status.HTTP_200_OK)
+        return Response({"post": serializer.data, "comments": comments.json()}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Create your post",
@@ -279,7 +279,7 @@ class PostViewSet(ViewSet):
         if data.status_code != 200:
             return data
         data.json()['post_id'] = post_id
-        response = requests.get('', data=data.json())
+        response = requests.get('http://134.122.76.27:8117/api/v1/post/', data=data.json())
         return response
 
     def get_one_time_token(self):
