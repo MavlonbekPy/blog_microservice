@@ -53,7 +53,7 @@ class PostViewSet(ViewSet):
             openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
         ],
         responses={200: PostSerializer()},
-        tags=['get-posts']
+        tags=['posts']
     )
     def get_posts(self, request, *args, **kwargs):
         size = request.GET.get('size')
@@ -80,8 +80,6 @@ class PostViewSet(ViewSet):
 
         result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)
-
-        # Return the paginated response
         return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(
@@ -226,7 +224,7 @@ class PostViewSet(ViewSet):
         ),
         tags=['get-post-list-for-services']
     )
-    def get_posts(self, request, *args, **kwargs):
+    def get_posts_microservice(self, request, *args, **kwargs):
         response = self.check_services_token(request.data.get('token'))
         if response.status_code != 200:
             return Response({"error": "U are not allowed"}, status.HTTP_400_BAD_REQUEST)
