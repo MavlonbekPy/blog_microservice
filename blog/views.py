@@ -128,7 +128,7 @@ class PostViewSet(ViewSet):
         if comments.status_code != 200:
             return Response(comments.json(), comments.status_code)
 
-        return Response({"post": serializer.data, "comments": comments.json()}, status.HTTP_200_OK)
+        return Response({"post": serializer.data, "comments": comments.json()['comments']}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Create your post",
