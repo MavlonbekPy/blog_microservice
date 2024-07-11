@@ -90,7 +90,8 @@ class PostViewSet(ViewSet):
             },
             required=['title', 'description', ]
         ),
-        tags=['posts']
+        tags=['posts'],
+        security=[{'Bearer': []}]
 
     )
     def create_post(self, request, *args, **kwargs):
@@ -171,8 +172,8 @@ class PostViewSet(ViewSet):
         data = self.get_one_time_token()
         if data.status_code != 200:
             return data
-        uuid = data.json().get('token')
-        response = requests.post('http://134.122.76.27:8118/api/v1/auth/me/', data={"uuid": uuid},
+        print(data.json())
+        response = requests.post('http://134.122.76.27:8118/api/v1/auth/me/', data=data.json(),
                                  headers={"Authorization": access_token})
         return response
 
