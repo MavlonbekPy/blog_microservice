@@ -210,10 +210,6 @@ class PostViewSet(ViewSet):
     @swagger_auto_schema(
         operation_description="Get all posts",
         operation_summary="get posts for users",
-        manual_parameters=[
-            openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
-            openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
-        ],
         responses={200: PostSerializer()},
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -231,14 +227,6 @@ class PostViewSet(ViewSet):
         response = self.check_services_token(request.data.get('token'))
         if response.status_code != 200:
             return Response({"error": "U are not allowed"}, status.HTTP_400_BAD_REQUEST)
-        size = request.query_params.get('size')
-        try:
-            size = int(size)
-        except ValueError:
-            size = 5
-
-        if size <= 0:
-            size = 5
 
         posts = Post.objects.all()
         title = request.GET.get('title', None)
@@ -256,12 +244,8 @@ class PostViewSet(ViewSet):
             except ValueError:
                 pass
 
-        paginator = PageNumberPagination()
-        paginator.page_size = size
-
-        result_page = paginator.paginate_queryset(posts, request)
-        serializer = PostSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
 
     def check_authentication(self, access_token):
         data = self.get_one_time_token()
