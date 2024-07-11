@@ -213,19 +213,19 @@ class PostViewSet(ViewSet):
         manual_parameters=[
             openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
             openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
-            openapi.Parameter('title', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
-            openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
-            openapi.Parameter('order_by', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY)
         ],
         responses={200: PostSerializer()},
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
                 'token': openapi.Schema(type=openapi.TYPE_STRING),
+                'title': openapi.Schema(type=openapi.TYPE_STRING),
+                'category': openapi.Schema(type=openapi.TYPE_STRING),
+                'order_by': openapi.Schema(type=openapi.TYPE_STRING)
             },
             required=['token']
         ),
-        tags=['get-post-list-for-services']
+        tags=['microservices']
     )
     def get_posts_microservice(self, request, *args, **kwargs):
         response = self.check_services_token(request.data.get('token'))
@@ -241,7 +241,6 @@ class PostViewSet(ViewSet):
             size = 5
 
         posts = Post.objects.all()
-
         title = request.GET.get('title', None)
         if title:
             posts = posts.filter(title__icontains=title)
@@ -262,8 +261,6 @@ class PostViewSet(ViewSet):
 
         result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)
-
-        # Return the paginated response
         return paginator.get_paginated_response(serializer.data)
 
     def check_authentication(self, access_token):
