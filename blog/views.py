@@ -206,6 +206,65 @@ class PostViewSet(ViewSet):
         post.save(update_fields=['like_count'])
         return Response({"detail": "Liked"}, status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Get all posts",
+        operation_summary="get posts for users",
+        manual_parameters=[
+            openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
+            openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
+            openapi.Parameter('title', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
+            openapi.Parameter('category', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY),
+            openapi.Parameter('order_by', type=openapi.TYPE_STRING, in_=openapi.IN_QUERY)
+        ],
+        responses={200: PostSerializer()},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'token': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['token']
+        ),
+        tags=['get-post-list-for-services']
+    )
+    def get_posts(self, request, *args, **kwargs):
+        response = self.check_services_token(request.data.get('token'))
+        if response.status_code != 200:
+            return Response({"error": "U are not allowed"}, status.HTTP_400_BAD_REQUEST)
+        size = request.GET.get('size')
+        try:
+            size = int(size)
+        except ValueError:
+            size = 5
+
+        if size <= 0:
+            size = 5
+
+        posts = Post.objects.all()
+
+        title = request.GET.get('title', None)
+        if title:
+            posts = posts.filter(title__icontains=title)
+
+        category = request.GET.get('category', None)
+        if category:
+            posts = posts.filter(category=category)
+
+        order = request.GET.get('order_by', None)
+        if order:
+            try:
+                posts = posts.order_by('order')
+            except ValueError:
+                pass
+
+        paginator = PageNumberPagination()
+        paginator.page_size = size
+
+        result_page = paginator.paginate_queryset(posts, request)
+        serializer = PostSerializer(result_page, many=True)
+
+        # Return the paginated response
+        return paginator.get_paginated_response(serializer.data)
+
     def check_authentication(self, access_token):
         data = self.get_one_time_token()
         if data.status_code != 200:
@@ -227,6 +286,10 @@ class PostViewSet(ViewSet):
                                  data={"secret_key": settings.SECRET_SERVICE_KEY,
                                        "service_id": settings.SECRET_SERVICE_ID,
                                        "service_name": settings.SECRET_SERVICE_NAME})
+        return response
+
+    def check_services_token(self, token):
+        response = requests.post('http://134.122.76.27:8114/api/v1/check/', data={"token": token})
         return response
 
 

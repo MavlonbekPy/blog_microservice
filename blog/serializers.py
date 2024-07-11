@@ -14,12 +14,13 @@ class PostSerializer(serializers.ModelSerializer):
         return super().save(**kwargs)
 
     def update(self, instance, validated_data):
-        # Remove the image field from validated_data if it's not present in the request data
-        if 'image' in validated_data:
-            validated_data.pop('image')
-        if 'author' in validated_data:
-            validated_data.pop('author')
-
+        validated_data.pop('image', None)
+        validated_data.pop('author', None)
+        validated_data.pop('like_count', None)
+        validated_data.pop('comment_count', None)
+        validated_data.pop('view_count', None)
+        validated_data.pop('created_at', None)
+        validated_data.pop('updated_at', None)
         return super().update(instance, validated_data)
 
 
