@@ -56,7 +56,7 @@ class PostViewSet(ViewSet):
         tags=['posts']
     )
     def get_posts(self, request, *args, **kwargs):
-        size = request.GET.get('size')
+        size = request.query_params.get('size')
         try:
             size = int(size)
         except ValueError:
