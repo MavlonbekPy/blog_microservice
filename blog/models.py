@@ -10,12 +10,12 @@ class Category(models.Model):
 
 
 class Post(models.Model):
-    author = models.IntegerField()
+    author = models.IntegerField(blank=True, null=True)
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
 
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
 
     like_count = models.IntegerField(default=0)
     comment_count = models.IntegerField(default=0)

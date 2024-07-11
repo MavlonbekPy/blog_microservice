@@ -86,9 +86,9 @@ class PostViewSet(ViewSet):
                 'title': openapi.Schema(type=openapi.TYPE_STRING),
                 'description': openapi.Schema(type=openapi.TYPE_STRING),
                 'category': openapi.Schema(type=openapi.TYPE_INTEGER),
-
+                'image': openapi.Schema(type=openapi.TYPE_FILE, description="Image file")
             },
-            required=['title', 'description', ]
+            required=['title', 'description',]
         ),
         tags=['posts'],
         security=[{'Bearer': []}]
@@ -98,7 +98,6 @@ class PostViewSet(ViewSet):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
             return Response(user.json(), user.status_code)
-
         serializer = PostSerializer(data=request.data, context={"user_id": user.json().get('id')})
         if serializer.is_valid():
             serializer.save()
@@ -150,7 +149,6 @@ class PostViewSet(ViewSet):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
             return Response(user.json(), status=user.status_code)
-        print(user.json())
         post = Post.objects.filter(author=user.json().get('id')).first()
         if not post:
             return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -172,7 +170,6 @@ class PostViewSet(ViewSet):
         data = self.get_one_time_token()
         if data.status_code != 200:
             return data
-        print(data.json())
         response = requests.post('http://134.122.76.27:8118/api/v1/auth/me/', data=data.json(),
                                  headers={"Authorization": access_token})
         return response
