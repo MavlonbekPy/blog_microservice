@@ -231,7 +231,7 @@ class PostViewSet(ViewSet):
         response = self.check_services_token(request.data.get('token'))
         if response.status_code != 200:
             return Response({"error": "U are not allowed"}, status.HTTP_400_BAD_REQUEST)
-        size = request.GET.get('size')
+        size = request.query_params.get('size')
         try:
             size = int(size)
         except ValueError:
