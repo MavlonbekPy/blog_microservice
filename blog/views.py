@@ -126,7 +126,7 @@ class PostViewSet(ViewSet):
         serializer = PostSerializer(obj)
         comments = self.get_post_comment(pk)
         if comments.status_code != 200:
-            return Response(comments.json(), comments.status_code)
+            return Response({"Could not get comment"}, comments.status_code)
 
         return Response({"post": serializer.data, "comments": comments.json()['comments']}, status.HTTP_200_OK)
 
