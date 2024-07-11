@@ -28,7 +28,7 @@ class PostViewSet(ViewSet):
         tags=['posts'],
         security=[{'Bearer': []}]
 
-    )
+    )  # notification
     def post_delete(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
@@ -45,7 +45,7 @@ class PostViewSet(ViewSet):
 
     @swagger_auto_schema(
         operation_description="Get all posts",
-        operation_summary="get posts",
+        operation_summary="get posts for users",
         manual_parameters=[
             openapi.Parameter('page', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
             openapi.Parameter('size', type=openapi.TYPE_INTEGER, in_=openapi.IN_QUERY),
@@ -56,15 +56,20 @@ class PostViewSet(ViewSet):
         tags=['get-posts']
     )
     def get_posts(self, request, *args, **kwargs):
-        size = request.GET.get('size', 5)
+        size = request.GET.get('size')
+        try:
+            size = int(size)
+        except ValueError:
+            size = 5
+
+        if size <= 0:
+            size = 5
 
         posts = Post.objects.all()
-        if not (isinstance(size, int) and size > 0):
-            size = 5
 
         title = request.GET.get('title', None)
         if title:
-            posts = posts.filter(title__contains=title)
+            posts = posts.filter(title__icontains=title)
 
         category = request.GET.get('category', None)
         if category:
@@ -72,8 +77,11 @@ class PostViewSet(ViewSet):
 
         paginator = PageNumberPagination()
         paginator.page_size = size
+
         result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)
+
+        # Return the paginated response
         return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(
@@ -88,12 +96,12 @@ class PostViewSet(ViewSet):
                 'category': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'image': openapi.Schema(type=openapi.TYPE_FILE, description="Image file")
             },
-            required=['title', 'description',]
+            required=['title', 'description', ]
         ),
         tags=['posts'],
         security=[{'Bearer': []}]
 
-    )
+    )  # notification
     def create_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
@@ -104,12 +112,13 @@ class PostViewSet(ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def list(self, request):
-        queryset = Post.objects.all()
-        serializer = PostSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, *args, **kwargs):
+    @swagger_auto_schema(
+        operation_description="Single post",
+        operation_summary="Single post",
+        responses={200: PostSerializer()},
+        tags=['posts'],
+    )  # comment # tag
+    def single_post(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
         obj = Post.objects.filter(id=pk).first()
 
@@ -117,19 +126,50 @@ class PostViewSet(ViewSet):
             return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
 
         serializer = PostSerializer(obj)
-        comments = self.get_post_comment(pk)
-        if comments.status_code != 200:
-            return Response(comments.json(), comments.status_code)
+        # comments = self.get_post_comment(pk)
+        # if comments.status_code != 200:
+        #     return Response(comments.json(), comments.status_code)
 
-        return Response({"post": serializer.data, "comments": comments.json()}, status.HTTP_200_OK)
+        return Response({"post": serializer.data}, status.HTTP_200_OK)
 
-    def update(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        serializer = PostSerializer(post, data=request.data)
+    @swagger_auto_schema(
+        operation_description="Create your post",
+        operation_summary="Create post",
+        responses={200: PostSerializer()},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'title': openapi.Schema(type=openapi.TYPE_STRING),
+                'description': openapi.Schema(type=openapi.TYPE_STRING),
+                'category': openapi.Schema(type=openapi.TYPE_INTEGER),
+            },
+            required=['post_id']
+        ),
+        tags=['posts'],
+        security=[{'Bearer': []}]
+
+    )
+    def post_update(self, request, *args, **kwargs):
+        user = self.check_authentication(request.headers.get('Authorization'))
+        if user.status_code != 200:
+            return Response(user.json(), user.status_code)
+
+        data = request.data
+        post_id = data.get('post_id')
+
+        post_obj = Post.objects.filter(id=post_id).first()
+        if post_obj is None:
+            return Response({"error": "post not found"}, status.HTTP_404_NOT_FOUND)
+
+        if post_obj.author != user.json().get('id'):
+            return Response({"error": "it is not ur post"}, status.HTTP_400_BAD_REQUEST)
+
+        serializer = PostSerializer(post_obj, data=data, partial=True)
         if serializer.is_valid():
-            serializer.save
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response({"error": "Smth is wrong"}, status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Like or unlike",
