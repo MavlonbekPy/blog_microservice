@@ -202,6 +202,9 @@ class PostViewSet(ViewSet):
         like_obj.save()
         post.like_count += 1
         post.save(update_fields=['like_count'])
+        response = self.send_notification(user.json().get('id'))
+        if response.status_code != 200:
+            return Response(response.json(), response.status_code)
         return Response({"detail": "Liked"}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -288,6 +291,16 @@ class PostViewSet(ViewSet):
 
     def check_services_token(self, token):
         response = requests.post('http://134.122.76.27:8114/api/v1/check/', data={"token": token})
+        return response
+
+    def send_notification(self, user_id):
+        token = self.get_one_time_token()
+        if token.status_code != 200:
+            return token
+        response = requests.post('http://134.122.76.27:8112/api/v1/notification/',
+                                 data={"token": token.json().get('token'),
+                                       "user_id": user_id,
+                                       "notification_type": 1})
         return response
 
 
