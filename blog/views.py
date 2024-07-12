@@ -15,13 +15,6 @@ class PostViewSet(ViewSet):
         operation_description="Delete your post",
         operation_summary="Delete post",
         responses={200: "post deleted"},
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-            },
-            required=['post_id']
-        ),
         tags=['posts'],
         security=[{'Bearer': []}]
 
@@ -31,7 +24,7 @@ class PostViewSet(ViewSet):
         if user.status_code != 200:
             return Response(user.json(), user.status_code)
 
-        post_id = request.data.get('post_id')
+        post_id = kwargs.get('pk')
         post = Post.objects.filter(id=post_id).first()
         if post:
             if post.author == user.json().get('id'):
@@ -136,12 +129,11 @@ class PostViewSet(ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'title': openapi.Schema(type=openapi.TYPE_STRING),
                 'description': openapi.Schema(type=openapi.TYPE_STRING),
                 'category': openapi.Schema(type=openapi.TYPE_INTEGER),
             },
-            required=['post_id']
+            required=[]
         ),
         tags=['posts'],
         security=[{'Bearer': []}]
@@ -153,7 +145,7 @@ class PostViewSet(ViewSet):
             return Response(user.json(), user.status_code)
 
         data = request.data
-        post_id = data.get('post_id')
+        post_id = kwargs.get('pk')
 
         post_obj = Post.objects.filter(id=post_id).first()
         if post_obj is None:
