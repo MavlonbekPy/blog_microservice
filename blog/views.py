@@ -321,7 +321,7 @@ class PostViewSet(ViewSet):
         if token.status_code != 200:
             return token
         response = requests.post('http://134.122.76.27:8112/api/v1/notification/',
-                                 data={"token": token.json().get('token'),
+                                 json={"token": token.json().get('token'),
                                        "user_id": user_id,
                                        "notification_type": 1})
         return response
