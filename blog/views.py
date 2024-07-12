@@ -28,7 +28,7 @@ class PostViewSet(ViewSet):
         tags=['posts'],
         security=[{'Bearer': []}]
 
-    )  # notification
+    )
     def post_delete(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
@@ -56,7 +56,7 @@ class PostViewSet(ViewSet):
         tags=['posts']
     )
     def get_posts(self, request, *args, **kwargs):
-        size = request.query_params.get('size')
+        size = request.query_params.get('size', 5)
         try:
             size = int(size)
         except ValueError:
@@ -99,11 +99,13 @@ class PostViewSet(ViewSet):
         tags=['posts'],
         security=[{'Bearer': []}]
 
-    )  # notification
+    )
     def create_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
-        if user.status_code != 200:
+        if user.status_code != 200 and user.status_code != 500:
             return Response(user.json(), user.status_code)
+        elif user.status_code == 500:
+            return Response({"error": "internal server error"}, status.HTTP_400_BAD_REQUEST)
         serializer = PostSerializer(data=request.data, context={"user_id": user.json().get('id')})
         if serializer.is_valid():
             serializer.save()
@@ -187,7 +189,8 @@ class PostViewSet(ViewSet):
         user = self.check_authentication(request.headers.get('Authorization'))
         if user.status_code != 200:
             return Response(user.json(), status=user.status_code)
-        post = Post.objects.filter(author=user.json().get('id')).first()
+        post_id = request.data.get('post_id')
+        post = Post.objects.filter(id=post_id).first()
         if not post:
             return Response({"error": "post not found"}, status=status.HTTP_404_NOT_FOUND)
 
