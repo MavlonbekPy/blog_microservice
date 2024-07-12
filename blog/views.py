@@ -260,7 +260,6 @@ class PostViewSet(ViewSet):
             type=openapi.TYPE_OBJECT,
             properties={
                 'token': openapi.Schema(type=openapi.TYPE_STRING),
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
             },
             required=['token', 'post_id']
         ),
@@ -275,7 +274,7 @@ class PostViewSet(ViewSet):
         if response.status_code != 200:
             return Response({"error": "Service token is not valid"}, response.status_code)
 
-        post_id = request.data.get('post_id')
+        post_id = kwargs.get('post_id')
         post_obj = Post.objects.filter(id=post_id).first()
         if post_obj:
             if request.method == "GET":
