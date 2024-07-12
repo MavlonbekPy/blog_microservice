@@ -182,7 +182,8 @@ class PostViewSet(ViewSet):
             },
             required=['post_id']
         ),
-        tags=['posts']
+        tags=['posts'],
+        security=[{'Bearer': []}]
 
     )
     def like_unlike_post(self, request, *args, **kwargs):
