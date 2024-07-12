@@ -198,13 +198,15 @@ class PostViewSet(ViewSet):
             post.save(update_fields=['like_count'])
             return Response({"detail": "Unliked"}, status.HTTP_200_OK)
 
+        response = self.send_notification(user.json().get('id'))
+        if response.status_code != 200 and response.status_code != 500:
+            return Response(response.json(), response.status_code)
+        elif response.status_code == 500:
+            return Response({"error": "Server error occurred"}, status.HTTP_400_BAD_REQUEST)
         like_obj = Like.objects.create(post=post, author=user.json().get('id'))
         like_obj.save()
         post.like_count += 1
         post.save(update_fields=['like_count'])
-        response = self.send_notification(user.json().get('id'))
-        if response.status_code != 200:
-            return Response(response.json(), response.status_code)
         return Response({"detail": "Liked"}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -247,6 +249,36 @@ class PostViewSet(ViewSet):
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data, status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Check post existence",
+        operation_summary="Single post",
+        responses={200: PostSerializer()},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'token': openapi.Schema(type=openapi.TYPE_STRING),
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+            },
+            required=['token', 'post_id']
+        ),
+        tags=['microservices']
+    )
+    def post_check(self, request, *args, **kwargs):
+        token = request.data.get('token')
+        if not token:
+            return Response({"error": "Token not found"}, status.HTTP_400_BAD_REQUEST)
+
+        response = self.check_services_token(token),
+        if response.status_code != 200:
+            return Response({"error": "Service token is not valid"}, response.status_code)
+
+        post_id = request.data.get('post_id')
+        post_obj = Post.objects.filter(id=post_id).first()
+        if post_obj:
+            serializer = PostSerializer(post_obj)
+            return Response(serializer.data, status.HTTP_200_OK)
+        return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
+
     def check_authentication(self, access_token):
         data = self.get_one_time_token()
         if data.status_code != 200:
@@ -283,11 +315,3 @@ class PostViewSet(ViewSet):
                                        "user_id": user_id,
                                        "notification_type": 1})
         return response
-
-
-@api_view(["GET"])
-def create_post_view(request):
-    for i in range(1000):
-        post = Post(title=f"Post {i}", description=f"Post {i}", author=random.randint(1, 20), category_id=1)
-        post.save()
-    return Response({"message": "Post"})
