@@ -9,6 +9,6 @@ urlpatterns = [
     path('post/<int:pk>/', PostViewSet.as_view({"get": "single_post"})),
     path('like-unlike/', PostViewSet.as_view({"post": "like_unlike_post"})),
     path('post/update/', PostViewSet.as_view({"patch": "post_update"})),
-    path('post/detail-delete/<int:pk>/', PostViewSet.as_view({"get": "post_check",
+    path('post/detail-delete/<int:pk>/', PostViewSet.as_view({"post": "post_check",
                                                               "delete": "post_check"})),
 ]
