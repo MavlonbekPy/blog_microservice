@@ -11,4 +11,5 @@ urlpatterns = [
     path('post/update/', PostViewSet.as_view({"patch": "post_update"})),
     path('post/detail-delete/<int:pk>/', PostViewSet.as_view({"post": "post_check",
                                                               "delete": "post_check"})),
+    path('post/update-comment/', PostViewSet.as_view({"post": "comment_update"})),
 ]

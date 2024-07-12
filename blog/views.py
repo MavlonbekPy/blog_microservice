@@ -1,16 +1,13 @@
 import requests
-from rest_framework.decorators import api_view
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from django.shortcuts import get_object_or_404
 from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.pagination import PageNumberPagination
 from .models import Post, Like
 from .serializers import PostSerializer
-import random
 
 
 class PostViewSet(ViewSet):
@@ -264,7 +261,7 @@ class PostViewSet(ViewSet):
             properties={
                 'token': openapi.Schema(type=openapi.TYPE_STRING),
             },
-            required=['token', 'post_id']
+            required=['token']
         ),
         tags=['microservices']
     )
@@ -288,6 +285,34 @@ class PostViewSet(ViewSet):
                 post_obj.delete()
                 return Response({"detail": "post deleted"}, status.HTTP_200_OK)
         return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        operation_description="Update posts comment count",
+        operation_summary="Update posts comment count",
+        responses={200: "ok"},
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'token': openapi.Schema(type=openapi.TYPE_STRING),
+                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+            },
+            required=['token', 'post_id']
+        ),
+        tags=['microservices']
+    )
+    def comment_update(self, request, *args, **kwargs):
+        token = request.data.get('token')
+        response = self.check_services_token(token)
+        if response.status_code != 200:
+            return Response({"error": "Token is not valid"}, status.HTTP_400_BAD_REQUEST)
+
+        post_id = request.data.get('post_id')
+        post_obj = Post.objects.filter(id=post_id).first()
+        if post_obj:
+            post_obj.comment_count += 1
+            post_obj.save(update_fields=['comment_count'])
+            return Response({"detail": "ok"}, status.HTTP_200_OK)
+        return Response({"error": "post not found"}, status.HTTP_404_NOT_FOUND)
 
     def check_authentication(self, access_token):
         data = self.get_one_time_token()
