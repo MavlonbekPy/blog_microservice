@@ -275,8 +275,12 @@ class PostViewSet(ViewSet):
         post_id = request.data.get('post_id')
         post_obj = Post.objects.filter(id=post_id).first()
         if post_obj:
-            serializer = PostSerializer(post_obj)
-            return Response(serializer.data, status.HTTP_200_OK)
+            if request.method == "GET":
+                serializer = PostSerializer(post_obj)
+                return Response(serializer.data, status.HTTP_200_OK)
+            elif request.method == "DELETE":
+                post_obj.delete()
+                return Response({"detail": "post deleted"}, status.HTTP_200_OK)
         return Response({"error": "Post not found"}, status.HTTP_404_NOT_FOUND)
 
     def check_authentication(self, access_token):
