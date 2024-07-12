@@ -123,8 +123,8 @@ class PostViewSet(ViewSet):
         return Response({"post": serializer.data, "comments": comments.json()['comments']}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        operation_description="Create your post",
-        operation_summary="Create post",
+        operation_description="Update your post",
+        operation_summary="Update post",
         responses={200: PostSerializer()},
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
