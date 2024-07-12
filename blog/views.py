@@ -272,12 +272,13 @@ class PostViewSet(ViewSet):
         if not token:
             return Response({"error": "Token not found"}, status.HTTP_400_BAD_REQUEST)
 
-        response = self.check_services_token(token),
+        response = self.check_services_token(token)
         if response.status_code != 200:
             return Response({"error": "Service token is not valid"}, response.status_code)
 
         post_id = kwargs.get('post_id')
         post_obj = Post.objects.filter(id=post_id).first()
+        print(post_obj)
         if post_obj:
             if request.method == "POST":
                 serializer = PostSerializer(post_obj)
@@ -311,7 +312,8 @@ class PostViewSet(ViewSet):
         return response
 
     def check_services_token(self, token):
-        response = requests.post('http://134.122.76.27:8114/api/v1/check/', data={"token": token})
+        response = requests.post('http://134.122.76.27:8114/api/v1/check/',
+                                 data={"token": token})
         return response
 
     def send_notification(self, user_id):
