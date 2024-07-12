@@ -187,8 +187,10 @@ class PostViewSet(ViewSet):
     )
     def like_unlike_post(self, request, *args, **kwargs):
         user = self.check_authentication(request.headers.get('Authorization'))
-        if user.status_code != 200:
+        if user.status_code != 200 and user.status_code != 500:
             return Response(user.json(), status=user.status_code)
+        elif user.status_code == 500:
+            return Response({"error": "Internal server error"}, status.HTTP_400_BAD_REQUEST)
         post_id = request.data.get('post_id')
         post = Post.objects.filter(id=post_id).first()
         if not post:
@@ -277,7 +279,7 @@ class PostViewSet(ViewSet):
         post_id = kwargs.get('post_id')
         post_obj = Post.objects.filter(id=post_id).first()
         if post_obj:
-            if request.method == "GET":
+            if request.method == "POST":
                 serializer = PostSerializer(post_obj)
                 return Response(serializer.data, status.HTTP_200_OK)
             elif request.method == "DELETE":
