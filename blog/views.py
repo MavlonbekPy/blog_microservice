@@ -295,8 +295,9 @@ class PostViewSet(ViewSet):
             properties={
                 'token': openapi.Schema(type=openapi.TYPE_STRING),
                 'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                "add": openapi.Schema(type=openapi.TYPE_STRING, description="send update or delete"),
             },
-            required=['token', 'post_id']
+            required=['token', 'post_id', "add"]
         ),
         tags=['microservices']
     )
@@ -308,10 +309,18 @@ class PostViewSet(ViewSet):
 
         post_id = request.data.get('post_id')
         post_obj = Post.objects.filter(id=post_id).first()
+        add = request.data.get('add')
         if post_obj:
-            post_obj.comment_count += 1
-            post_obj.save(update_fields=['comment_count'])
-            return Response({"detail": "ok"}, status.HTTP_200_OK)
+            if add == 'update':
+                post_obj.comment_count += 1
+                post_obj.save(update_fields=['comment_count'])
+                return Response({"detail": "ok"}, status.HTTP_200_OK)
+            elif add == 'delete':
+                post_obj.comment_count -= 1
+                post_obj.save(update_fields=['comment_count'])
+                return Response({"detail": "ok"}, status.HTTP_200_OK)
+            else:
+                return Response({"detail": "unknown command"}, status.HTTP_400_BAD_REQUEST)
         return Response({"error": "post not found"}, status.HTTP_404_NOT_FOUND)
 
     def check_authentication(self, access_token):
