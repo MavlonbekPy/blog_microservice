@@ -276,7 +276,7 @@ class PostViewSet(ViewSet):
         if response.status_code != 200:
             return Response({"error": "Service token is not valid"}, response.status_code)
 
-        post_id = kwargs.get('post_id')
+        post_id = kwargs.get('pk')
         post_obj = Post.objects.filter(id=post_id).first()
         print(post_obj)
         if post_obj:
